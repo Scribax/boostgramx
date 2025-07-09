@@ -68,22 +68,28 @@ router.post('/', authMiddleware, async (req, res) => {
     const pricePerUnit = service.price / 1000; // Precio por cada 1000 unidades del servicio
     const totalAmount = (quantity * pricePerUnit).toFixed(2);
     
-    // Precios con márgenes justos y accesibles
+    // Precios ajustados considerando comisiones de MercadoPago
     // Costo base: $1.68 USD por 1000 seguidores = $2,184 ARS
-    // Margen fijo: +$400 a +$1,300 ARS (cómodo pero accesible)
-    let customPrice;
+    // Comisión MercadoPago: 7.61% + $2.99 ARS
+    // Margen deseado: +$400 a +$1,200 ARS después de comisiones
+    let basePrice;
     if (quantity <= 250) {
-      customPrice = 990; // Ganancia: $444 ARS
+      basePrice = 990; // Precio base antes de comisiones
     } else if (quantity <= 500) {
-      customPrice = 1690; // Ganancia: $598 ARS
+      basePrice = 1690; // Precio base antes de comisiones
     } else if (quantity <= 1000) {
-      customPrice = 3390; // Ganancia: $1,206 ARS
+      basePrice = 3390; // Precio base antes de comisiones
     } else {
-      // Para cantidades mayores, precio proporcional más justo
+      // Para cantidades mayores, precio proporcional
       const costPerThousand = 2184; // Tu costo real por 1000
-      const profitPerThousand = 1200; // Ganancia fija de $1,200 por cada 1000
-      customPrice = Math.round((quantity / 1000) * (costPerThousand + profitPerThousand));
+      const profitPerThousand = 1200; // Ganancia deseada por cada 1000
+      basePrice = Math.round((quantity / 1000) * (costPerThousand + profitPerThousand));
     }
+    
+    // Ajustar precio para cubrir comisión de MercadoPago (7.61% + $2.99)
+    const mercadoPagoFee = 2.99;
+    const mercadoPagoRate = 0.0761;
+    const customPrice = Math.round((basePrice + mercadoPagoFee) / (1 - mercadoPagoRate));
     const finalAmount = customPrice;
 
     // Extraer usuario de Instagram de la URL
