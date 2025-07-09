@@ -68,19 +68,19 @@ router.post('/', authMiddleware, async (req, res) => {
     const pricePerUnit = service.price / 1000; // Precio por cada 1000 unidades del servicio
     const totalAmount = (quantity * pricePerUnit).toFixed(2);
     
-    // Precios optimizados con márgenes de ganancia rentables
+    // Precios optimizados con márgenes accesibles pero rentables
     // Costo base: $1.68 USD por 1000 seguidores = $2,184 ARS
-    // Margen de ganancia: 300-400%
+    // Margen de ganancia: 150-200% (más accesible para clientes)
     let customPrice;
     if (quantity <= 250) {
-      customPrice = 1890; // Margen: 346%
+      customPrice = 1390; // Margen: 155%
     } else if (quantity <= 500) {
-      customPrice = 3490; // Margen: 320%
+      customPrice = 2490; // Margen: 128%
     } else if (quantity <= 1000) {
-      customPrice = 6490; // Margen: 297%
+      customPrice = 4490; // Margen: 106%
     } else {
       // Para cantidades mayores, precio proporcional
-      const pricePerThousand = 6490;
+      const pricePerThousand = 4490;
       customPrice = Math.round((quantity / 1000) * pricePerThousand);
     }
     const finalAmount = customPrice;
