@@ -11,7 +11,6 @@ const connectDB = async () => {
       serverSelectionTimeoutMS: 15000, // Aumentar timeout para Atlas
       socketTimeoutMS: 45000, // Socket timeout más largo
       connectTimeoutMS: 15000, // Timeout de conexión inicial más largo
-      bufferMaxEntries: 0, // Disable buffering
       bufferCommands: false, // Disable buffering
       retryWrites: true, // Habilitar retry de escrituras
       w: 'majority', // Write concern

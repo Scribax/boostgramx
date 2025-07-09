@@ -13,7 +13,6 @@ async function testMongoDB() {
       serverSelectionTimeoutMS: 15000,
       socketTimeoutMS: 45000,
       connectTimeoutMS: 15000,
-      bufferMaxEntries: 0,
       bufferCommands: false,
       retryWrites: true,
       w: 'majority',
