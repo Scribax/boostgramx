@@ -115,3 +115,31 @@ temp/
 
 # Railway
 .railway/
+
+# Archivos y documentos sensibles/internos
+PROMPT_FOR_NEXT_AI.md
+IONOS_SETUP_GUIDE.md
+DEPLOY_INSTRUCTIONS.md
+docs/
+railway-env.txt
+deploy-frontend.bat
+package-lock.json
+package.json
+railway.json
+redirect-helper.js
+render-build.sh
+test-auth.js
+vercel.json
+
+# Archivos de prueba y desarrollo
+test-*.js
+**/test-*.js
+check-*.js
+**/check-*.js
+server/test-*.js
+
+# Archivos de configuración adicionales
+**/railway-env.txt
+*.backup
+*.bak
+*.orig
