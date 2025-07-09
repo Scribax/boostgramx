@@ -66,6 +66,7 @@ const connectDB = async () => {
     
     // En producción, usar memoria DB como fallback temporal
     console.log('📝 Fallback temporal: Usando base de datos en memoria');
+    console.log('💡 Para solucionar: Configurar IP whitelist en MongoDB Atlas');
     global.USE_MEMORY_DB = true;
     return null;
   }
