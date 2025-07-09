@@ -16,8 +16,10 @@ const app = express();
 
 // Configurar CORS
 app.use(cors({
-  origin: process.env.FRONTEND_URL_PROD || 'https://boostgramx.com',
-  credentials: true
+  origin: ['https://boostgramx.com', 'http://localhost:3000'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 // Middlewares de seguridad
