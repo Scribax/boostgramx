@@ -3,16 +3,25 @@ const mongoose = require('mongoose');
 // Configuración de MongoDB
 const connectDB = async () => {
   try {
-    // Opciones de conexión optimizadas para Mongoose 7+
+    // Opciones de conexión optimizadas para Vercel/Serverless
     const options = {
       useNewUrlParser: true,
       useUnifiedTopology: true,
-      maxPoolSize: 10, // Maintain up to 10 socket connections
-      serverSelectionTimeoutMS: 10000, // Keep trying to send operations for 10 seconds
-      socketTimeoutMS: 45000, // Close sockets after 45 seconds of inactivity
-      connectTimeoutMS: 10000, // Give up initial connection after 10 seconds
+      maxPoolSize: 2, // Reducir pool size para serverless
+      serverSelectionTimeoutMS: 5000, // Reducir timeout para serverless
+      socketTimeoutMS: 20000, // Reducir socket timeout
+      connectTimeoutMS: 5000, // Reducir timeout de conexión
+      bufferMaxEntries: 0, // Disable buffering
+      bufferCommands: false, // Disable buffering
     };
 
+    // Verificar que la URI esté configurada
+    if (!process.env.MONGODB_URI) {
+      throw new Error('MONGODB_URI no está configurada en las variables de entorno');
+    }
+
+    console.log('🔄 Intentando conectar a MongoDB...');
+    
     const conn = await mongoose.connect(process.env.MONGODB_URI, options);
 
     console.log(`✅ MongoDB conectado: ${conn.connection.host}`);
@@ -28,6 +37,11 @@ const connectDB = async () => {
       console.error('❌ Error de MongoDB:', err);
     });
 
+    // Evento de reconexión
+    mongoose.connection.on('reconnected', () => {
+      console.log('🔄 MongoDB reconectado');
+    });
+
     // Graceful shutdown
     process.on('SIGINT', async () => {
       await mongoose.connection.close();
@@ -38,6 +52,7 @@ const connectDB = async () => {
     return conn;
   } catch (error) {
     console.error('❌ Error conectando a MongoDB:', error.message);
+    console.error('❌ Stack completo:', error.stack);
     
     // En desarrollo, usar memoria como fallback
     if (process.env.NODE_ENV === 'development') {
@@ -46,7 +61,10 @@ const connectDB = async () => {
       return null;
     }
     
-    process.exit(1);
+    // En producción, usar memoria DB como fallback temporal
+    console.log('📝 Fallback temporal: Usando base de datos en memoria');
+    global.USE_MEMORY_DB = true;
+    return null;
   }
 };
 
