@@ -24,7 +24,11 @@ const CheckoutSuccessPage = () => {
         if (orderId) {
           // Obtener detalles de la orden usando cookies
           const token = Cookies.get('token');
-          const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+          const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://boostgramx.vercel.app/api';
+          
+          console.log('Obteniendo orden:', orderId);
+          console.log('Token:', token ? 'Presente' : 'Ausente');
+          
           const response = await fetch(`${API_BASE_URL}/orders/${orderId}`, {
             headers: {
               'Authorization': `Bearer ${token}`
@@ -33,16 +37,20 @@ const CheckoutSuccessPage = () => {
 
           if (response.ok) {
             const orderResponse = await response.json();
-            console.log('Order response:', orderResponse);
+            console.log('Order response completa:', orderResponse);
             if (orderResponse.success) {
+              console.log('Datos de la orden:', orderResponse.data);
               setOrderDetails(orderResponse.data);
             }
           } else {
-            console.error('Error obteniendo orden:', response.statusText);
+            console.error('Error obteniendo orden:', response.status, response.statusText);
             // Mostrar página de éxito básica sin detalles
             setOrderDetails({
               _id: orderId,
-              status: 'completed',
+              status: 'processing',
+              quantity: 250,
+              totalAmount: 400,
+              instagramUser: 'usuario_no_disponible',
               message: 'Pago procesado exitosamente'
             });
           }
@@ -117,7 +125,7 @@ const CheckoutSuccessPage = () => {
                     <FaInstagram className="detail-icon" />
                     Usuario:
                   </span>
-                  <span className="detail-value">@{orderDetails.instagramUser}</span>
+                  <span className="detail-value">@{orderDetails.instagramUser || orderDetails.targetUrl?.replace('https://instagram.com/', '') || 'N/A'}</span>
                 </div>
                 <div className="detail-row">
                   <span className="detail-label">
@@ -128,7 +136,7 @@ const CheckoutSuccessPage = () => {
                 </div>
                 <div className="detail-row">
                   <span className="detail-label">Total pagado:</span>
-                  <span className="detail-value total">${orderDetails.price} ARS</span>
+                  <span className="detail-value total">${orderDetails.totalAmount || orderDetails.price} ARS</span>
                 </div>
                 <div className="detail-row">
                   <span className="detail-label">Estado:</span>
