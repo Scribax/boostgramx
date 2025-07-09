@@ -1,0 +1,29 @@
+# Variables de entorno para Railway
+# Copia estas variables en el dashboard de Railway
+
+NODE_ENV=production
+PORT=5000
+
+# Base de Datos MongoDB Atlas
+MONGODB_URI=mongodb+srv://Scribax:yWW5fJ7MDl5A8A6F@scribax.pzu5cmn.mongodb.net/smm-panel?retryWrites=true&w=majority
+
+# JWT Secret
+JWT_SECRET=tu_jwt_secret_muy_seguro_aqui_2024
+
+# Frontend URL
+FRONTEND_URL=http://localhost:3000
+FRONTEND_URL_PROD=https://boostgramx.com
+
+# SMM Panel API
+SMM_API_URL=https://smmhype.com/api/v2
+SMM_API_KEY=398de670cbff5607141a8ef29dd7021b
+
+# MercadoPago - Credenciales Reales
+MERCADOPAGO_ACCESS_TOKEN=APP_USR-2823973966774541-070800-09828874bdf313cfa30a5c8f334e7f9b-305616995
+MERCADOPAGO_PUBLIC_KEY=APP_USR-82a9259a-1964-4bbe-a4c4-8ab50745ba4d
+
+# Webhook URL para notificaciones
+WEBHOOK_URL=https://tu-backend.up.railway.app/api/payments/webhook
+
+# Backend URL (se actualizará con la URL real de Railway)
+BACKEND_URL=https://tu-backend.up.railway.app
