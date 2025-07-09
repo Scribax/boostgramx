@@ -61,8 +61,11 @@ app.get('/api/health', (req, res) => {
       status: dbStatus.status,
       host: dbStatus.host,
       name: dbStatus.name,
-      usingMemory: global.USE_MEMORY_DB || false
+      usingMemory: global.USE_MEMORY_DB || false,
+      connected: dbStatus.status === 'connected',
+      type: global.USE_MEMORY_DB ? 'Memory Database' : 'MongoDB Atlas'
     },
+    environment: process.env.NODE_ENV || 'development',
     timestamp: new Date().toISOString()
   });
 });

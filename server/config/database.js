@@ -3,19 +3,21 @@ const mongoose = require('mongoose');
 // Configuración de MongoDB
 const connectDB = async () => {
   try {
-    // Opciones de conexión optimizadas para Vercel/Serverless
+    // Opciones de conexión optimizadas para MongoDB Atlas en Vercel
     const options = {
       useNewUrlParser: true,
       useUnifiedTopology: true,
-      maxPoolSize: 2, // Reducir pool size para serverless
-      serverSelectionTimeoutMS: 5000, // Reducir timeout para serverless
-      socketTimeoutMS: 20000, // Reducir socket timeout
-      connectTimeoutMS: 5000, // Reducir timeout de conexión
+      maxPoolSize: 5, // Pool size optimizado para Atlas
+      serverSelectionTimeoutMS: 8000, // Timeout para selección de servidor
+      socketTimeoutMS: 30000, // Socket timeout
+      connectTimeoutMS: 8000, // Timeout de conexión inicial
       bufferMaxEntries: 0, // Disable buffering
       bufferCommands: false, // Disable buffering
       retryWrites: true, // Habilitar retry de escrituras
       w: 'majority', // Write concern
-      authSource: 'admin', // Base de datos de autenticación
+      readPreference: 'primary', // Leer desde el nodo primario
+      heartbeatFrequencyMS: 10000, // Frecuencia de heartbeat
+      minPoolSize: 1, // Pool mínimo
     };
 
     // Verificar que la URI esté configurada
@@ -64,9 +66,12 @@ const connectDB = async () => {
       return null;
     }
     
-    // En producción, usar memoria DB como fallback temporal
+    // En producción, intentar usar memoria DB como fallback temporal
+    console.log('⚠️ Conexión a MongoDB Atlas falló');
     console.log('📝 Fallback temporal: Usando base de datos en memoria');
-    console.log('💡 Para solucionar: Configurar IP whitelist en MongoDB Atlas');
+    console.log('💡 Verifica que MongoDB Atlas esté configurado correctamente');
+    
+    // Solo usar memoria DB como último recurso
     global.USE_MEMORY_DB = true;
     return null;
   }
