@@ -41,7 +41,6 @@ if (process.env.MONGODB_URI) {
     useUnifiedTopology: true,
     serverSelectionTimeoutMS: 5000,
     socketTimeoutMS: 45000,
-    bufferMaxEntries: 0,
     maxPoolSize: 10
   }).then(() => {
     console.log('✅ Conectado a MongoDB');
