@@ -188,29 +188,49 @@ router.post('/test-payment', async (req, res) => {
 // Webhook para recibir notificaciones de pago
 router.post('/webhook', async (req, res) => {
   try {
+    console.log('📬 Webhook recibido:', req.body);
     const { type, data } = req.body;
     
     if (type === 'payment') {
       const paymentInfo = await mercadopago.payment.findById(data.id);
+      console.log('💳 Información de pago:', paymentInfo.body);
       
       const externalReference = paymentInfo.body.external_reference;
       const status = paymentInfo.body.status;
       
+      console.log('🔄 Procesando pago:', { externalReference, status });
+      
       // Buscar la orden
-      const order = await Order.findById(externalReference);
+      let order;
+      if (global.USE_MEMORY_DB) {
+        order = await memoryDB.findOrderById(externalReference);
+      } else {
+        order = await Order.findById(externalReference);
+      }
+      
       if (!order) {
         console.error('Orden no encontrada para external_reference:', externalReference);
         return res.status(404).json({ error: 'Orden no encontrada' });
       }
       
       // Actualizar estado de pago
-      await Order.findByIdAndUpdate(externalReference, {
-        paymentStatus: status,
-        paymentId: data.id
-      });
+      if (global.USE_MEMORY_DB) {
+        await memoryDB.updateOrder(externalReference, {
+          paymentStatus: status,
+          paymentId: data.id
+        });
+      } else {
+        await Order.findByIdAndUpdate(externalReference, {
+          paymentStatus: status,
+          paymentId: data.id
+        });
+      }
+      
+      console.log(`🔄 Orden ${externalReference} actualizada con estado: ${status}`);
       
       // Si el pago fue aprobado, ejecutar orden en SMM API
       if (status === 'approved') {
+        console.log('✅ Pago aprobado, ejecutando orden en SMM API...');
         await executeOrderOnSMM(order);
       }
     }
@@ -225,35 +245,69 @@ router.post('/webhook', async (req, res) => {
 // Función para ejecutar orden en SMM API después de pago confirmado
 async function executeOrderOnSMM(order) {
   try {
-    const smmResponse = await axios.post('https://smmhype.com/api/v2', {
+    console.log('🚀 Ejecutando orden en SMM API:', order);
+    
+    // Construir link de Instagram
+    const instagramLink = order.instagramUser ? 
+      `https://instagram.com/${order.instagramUser}` : 
+      order.targetUrl;
+    
+    const smmPayload = {
       key: process.env.SMM_API_KEY,
       action: 'add',
-      service: "14350",
-      link: order.link,
+      service: "14350", // ID del servicio en SMM Panel
+      link: instagramLink,
       quantity: order.quantity
-    });
+    };
+    
+    console.log('📤 Enviando a SMM API:', smmPayload);
+    
+    const smmResponse = await axios.post('https://smmhype.com/api/v2', smmPayload);
+    
+    console.log('📬 Respuesta de SMM API:', smmResponse.data);
     
     if (smmResponse.data.order) {
-      await Order.findByIdAndUpdate(order._id, {
+      // Actualizar orden con éxito
+      const updateData = {
         status: 'processing',
         externalOrderId: smmResponse.data.order,
         paymentStatus: 'approved'
-      });
+      };
       
-      console.log(`Orden ${order._id} ejecutada en SMM API con ID: ${smmResponse.data.order}`);
+      if (global.USE_MEMORY_DB) {
+        await memoryDB.updateOrder(order._id, updateData);
+      } else {
+        await Order.findByIdAndUpdate(order._id, updateData);
+      }
+      
+      console.log(`✅ Orden ${order._id} ejecutada en SMM API con ID: ${smmResponse.data.order}`);
     } else {
-      console.error('Error ejecutando orden en SMM API:', smmResponse.data);
-      await Order.findByIdAndUpdate(order._id, {
+      console.error('❌ Error ejecutando orden en SMM API:', smmResponse.data);
+      
+      const errorData = {
         status: 'failed',
         error: smmResponse.data.error || 'Error desconocido en SMM API'
-      });
+      };
+      
+      if (global.USE_MEMORY_DB) {
+        await memoryDB.updateOrder(order._id, errorData);
+      } else {
+        await Order.findByIdAndUpdate(order._id, errorData);
+      }
     }
   } catch (error) {
-    console.error('Error ejecutando orden en SMM API:', error);
-    await Order.findByIdAndUpdate(order._id, {
+    console.error('❌ Error ejecutando orden en SMM API:', error);
+    
+    const errorData = {
       status: 'failed',
       error: error.message
-    });
+    };
+    
+    if (global.USE_MEMORY_DB) {
+      await memoryDB.updateOrder(order._id, errorData);
+    } else {
+      await Order.findByIdAndUpdate(order._id, errorData);
+    }
   }
 }
 

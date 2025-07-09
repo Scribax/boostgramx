@@ -73,11 +73,15 @@ router.post('/', authMiddleware, async (req, res) => {
     const customPrice = quantity <= 250 ? 400 : quantity <= 1000 ? 890 : 1890;
     const finalAmount = customPrice;
 
+    // Extraer usuario de Instagram de la URL
+    const instagramUser = targetUrl.replace('https://instagram.com/', '').replace('/', '');
+    
     // Crear orden en nuestro sistema primero (pendiente de pago)
     const orderData = {
       user: userId,
       service: serviceId,
       targetUrl,
+      instagramUser, // Agregar el usuario de Instagram
       quantity,
       price: pricePerUnit,
       totalAmount: finalAmount, // Usar el precio personalizado
