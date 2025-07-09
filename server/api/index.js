@@ -39,11 +39,17 @@ if (process.env.MONGODB_URI) {
   mongoose.connect(process.env.MONGODB_URI, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
+    serverSelectionTimeoutMS: 5000,
+    socketTimeoutMS: 45000,
+    bufferMaxEntries: 0,
+    maxPoolSize: 10
   }).then(() => {
     console.log('✅ Conectado a MongoDB');
   }).catch(err => {
     console.error('❌ Error conectando a MongoDB:', err);
   });
+} else {
+  console.error('❌ MONGODB_URI no está definida');
 }
 
 // Rutas
@@ -55,10 +61,22 @@ app.use('/api/admin', adminRoutes);
 
 // Ruta de prueba
 app.get('/api/health', (req, res) => {
+  const mongoStatus = mongoose.connection.readyState;
+  const mongoStates = {
+    0: 'disconnected',
+    1: 'connected',
+    2: 'connecting',
+    3: 'disconnecting'
+  };
+  
   res.json({ 
     success: true, 
     message: 'Backend funcionando correctamente',
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    mongodb: {
+      status: mongoStates[mongoStatus],
+      uri: process.env.MONGODB_URI ? 'configurada' : 'no configurada'
+    }
   });
 });
 
