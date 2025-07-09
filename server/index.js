@@ -7,18 +7,28 @@ const { connectDB, getConnectionStatus } = require('./config/database');
 
 const app = express();
 
+// Configurar trust proxy para Vercel
+app.set('trust proxy', 1);
+
 // Middlewares de seguridad
 app.use(helmet());
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  origin: [process.env.FRONTEND_URL || 'http://localhost:3000', 'https://boostgramx.com'],
   credentials: true
 }));
 
-// Rate limiting
+// Rate limiting configurado para Vercel
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutos
   max: 100, // límite de 100 requests por IP por ventana
-  message: 'Demasiadas solicitudes desde esta IP, intenta más tarde.'
+  message: 'Demasiadas solicitudes desde esta IP, intenta más tarde.',
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+  trustProxy: true, // Trust the proxy
+  keyGenerator: (req) => {
+    // Usar IP real del usuario en Vercel
+    return req.ip || req.connection.remoteAddress || 'unknown';
+  }
 });
 app.use('/api/', limiter);
 

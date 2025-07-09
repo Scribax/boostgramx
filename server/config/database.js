@@ -13,6 +13,9 @@ const connectDB = async () => {
       connectTimeoutMS: 5000, // Reducir timeout de conexión
       bufferMaxEntries: 0, // Disable buffering
       bufferCommands: false, // Disable buffering
+      retryWrites: true, // Habilitar retry de escrituras
+      w: 'majority', // Write concern
+      authSource: 'admin', // Base de datos de autenticación
     };
 
     // Verificar que la URI esté configurada
