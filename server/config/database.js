@@ -7,17 +7,22 @@ const connectDB = async () => {
     const options = {
       useNewUrlParser: true,
       useUnifiedTopology: true,
-      maxPoolSize: 5, // Pool size optimizado para Atlas
-      serverSelectionTimeoutMS: 8000, // Timeout para selección de servidor
-      socketTimeoutMS: 30000, // Socket timeout
-      connectTimeoutMS: 8000, // Timeout de conexión inicial
+      maxPoolSize: 3, // Pool size reducido para Vercel
+      serverSelectionTimeoutMS: 15000, // Aumentar timeout para Atlas
+      socketTimeoutMS: 45000, // Socket timeout más largo
+      connectTimeoutMS: 15000, // Timeout de conexión inicial más largo
       bufferMaxEntries: 0, // Disable buffering
       bufferCommands: false, // Disable buffering
       retryWrites: true, // Habilitar retry de escrituras
       w: 'majority', // Write concern
-      readPreference: 'primary', // Leer desde el nodo primario
+      readPreference: 'primaryPreferred', // Leer desde primario preferido
       heartbeatFrequencyMS: 10000, // Frecuencia de heartbeat
-      minPoolSize: 1, // Pool mínimo
+      minPoolSize: 0, // Pool mínimo 0 para serverless
+      maxIdleTimeMS: 30000, // Tiempo máximo de inactividad
+      authSource: 'admin', // Base de datos de autenticación
+      ssl: true, // Habilitar SSL
+      tls: true, // Habilitar TLS
+      tlsInsecure: false // Validar certificados SSL
     };
 
     // Verificar que la URI esté configurada
@@ -25,26 +30,44 @@ const connectDB = async () => {
       throw new Error('MONGODB_URI no está configurada en las variables de entorno');
     }
 
-    console.log('🔄 Intentando conectar a MongoDB...');
+    console.log('🔄 Intentando conectar a MongoDB Atlas...');
+    console.log('💻 Configuración de conexión:', {
+      serverSelectionTimeoutMS: options.serverSelectionTimeoutMS,
+      connectTimeoutMS: options.connectTimeoutMS,
+      maxPoolSize: options.maxPoolSize
+    });
     
     const conn = await mongoose.connect(process.env.MONGODB_URI, options);
 
-    console.log(`✅ MongoDB conectado: ${conn.connection.host}`);
+    console.log(`✅ MongoDB Atlas conectado exitosamente!`);
+    console.log(`🛜 Host: ${conn.connection.host}`);
     console.log(`📂 Base de datos: ${conn.connection.name}`);
+    console.log(`🔗 Estado: ${conn.connection.readyState}`);
     
     // Evento de desconexión
     mongoose.connection.on('disconnected', () => {
-      console.log('⚠️ MongoDB desconectado');
+      console.log('⚠️ MongoDB desconectado - intentando reconectar...');
     });
 
     // Evento de error
     mongoose.connection.on('error', (err) => {
-      console.error('❌ Error de MongoDB:', err);
+      console.error('❌ Error de MongoDB:', err.message);
+      if (err.name === 'MongooseServerSelectionError') {
+        console.error('❌ Posibles causas:');
+        console.error('   - IP no está en whitelist de Atlas');
+        console.error('   - Credenciales incorrectas');
+        console.error('   - Cluster no disponible');
+      }
     });
 
     // Evento de reconexión
     mongoose.connection.on('reconnected', () => {
-      console.log('🔄 MongoDB reconectado');
+      console.log('🔄 MongoDB reconectado exitosamente!');
+    });
+
+    // Evento de conexión exitosa
+    mongoose.connection.on('connected', () => {
+      console.log('🔗 MongoDB conectado!');
     });
 
     // Graceful shutdown
