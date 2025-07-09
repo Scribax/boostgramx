@@ -20,7 +20,7 @@ const sampleServices = [
     speed: 'Medium',
     guarantee: '30 Days',
     features: ['Perfiles reales', 'Entrega gradual', 'Sin riesgo de ban'],
-    apiServiceId: 'smm_001',
+    apiServiceId: '14350',
     popularityScore: 95
   },
   {
@@ -38,7 +38,7 @@ const sampleServices = [
     speed: 'Medium',
     guarantee: '90 Days',
     features: ['Perfiles verificados', 'Actividad real', 'Retención garantizada'],
-    apiServiceId: 'smm_002',
+    apiServiceId: '14350',
     popularityScore: 90
   },
   {
@@ -56,7 +56,7 @@ const sampleServices = [
     speed: 'Fast',
     guarantee: '180 Days',
     features: ['Máxima calidad', 'Entrega en 3-5 días', 'Soporte premium'],
-    apiServiceId: 'smm_003',
+    apiServiceId: '14350',
     popularityScore: 100
   },
   {
@@ -74,7 +74,7 @@ const sampleServices = [
     speed: 'Medium',
     guarantee: '365 Days',
     features: ['Perfiles elite', 'Crecimiento orgánico', 'Garantía total'],
-    apiServiceId: 'smm_004',
+    apiServiceId: '14350',
     popularityScore: 88
   },
 

@@ -225,10 +225,10 @@ router.post('/webhook', async (req, res) => {
 // Función para ejecutar orden en SMM API después de pago confirmado
 async function executeOrderOnSMM(order) {
   try {
-    const smmResponse = await axios.post('https://justanotherpanel.com/api/v2', {
+    const smmResponse = await axios.post('https://smmhype.com/api/v2', {
       key: process.env.SMM_API_KEY,
       action: 'add',
-      service: order.serviceId,
+      service: "14350",
       link: order.link,
       quantity: order.quantity
     });
