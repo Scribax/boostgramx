@@ -3,6 +3,7 @@ const mercadopago = require('mercadopago');
 const Order = require('../models/Order');
 const User = require('../models/User');
 const axios = require('axios');
+const memoryDB = require('../data/memoryDB');
 const router = express.Router();
 
 // Configurar MercadoPago
@@ -315,7 +316,13 @@ async function executeOrderOnSMM(order) {
 router.get('/status/:orderId', async (req, res) => {
   try {
     const { orderId } = req.params;
-    const order = await Order.findById(orderId);
+    
+    let order;
+    if (global.USE_MEMORY_DB) {
+      order = await memoryDB.findOrderById(orderId);
+    } else {
+      order = await Order.findById(orderId);
+    }
     
     if (!order) {
       return res.status(404).json({ error: 'Orden no encontrada' });
@@ -330,6 +337,53 @@ router.get('/status/:orderId', async (req, res) => {
   } catch (error) {
     console.error('Error checking payment status:', error);
     res.status(500).json({ error: 'Error verificando estado de pago' });
+  }
+});
+
+// Endpoint temporal para procesar órdenes manualmente
+router.post('/process-order/:orderId', async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    
+    console.log(`🔄 Procesando orden manualmente: ${orderId}`);
+    
+    let order;
+    if (global.USE_MEMORY_DB) {
+      order = await memoryDB.findOrderById(orderId);
+    } else {
+      order = await Order.findById(orderId);
+    }
+    
+    if (!order) {
+      return res.status(404).json({ error: 'Orden no encontrada' });
+    }
+    
+    // Marcar como aprobado manualmente
+    const updateData = {
+      paymentStatus: 'approved',
+      status: 'processing'
+    };
+    
+    if (global.USE_MEMORY_DB) {
+      await memoryDB.updateOrder(orderId, updateData);
+      order = await memoryDB.findOrderById(orderId); // Recargar orden actualizada
+    } else {
+      await Order.findByIdAndUpdate(orderId, updateData);
+      order = await Order.findById(orderId); // Recargar orden actualizada
+    }
+    
+    // Ejecutar en SMM API
+    await executeOrderOnSMM(order);
+    
+    res.json({
+      success: true,
+      message: 'Orden procesada manualmente',
+      orderId: order._id
+    });
+    
+  } catch (error) {
+    console.error('Error procesando orden manualmente:', error);
+    res.status(500).json({ error: 'Error procesando orden' });
   }
 });
 
