@@ -14,6 +14,16 @@ const generateToken = (userId) => {
   });
 };
 
+// Verificar validez del token
+const verifyToken = (token) => {
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret_key_temporal');
+    return { valid: true, decoded };
+  } catch (error) {
+    return { valid: false, error: error.message };
+  }
+};
+
 // POST /api/auth/register - Registro de usuario  
 router.post('/register', async (req, res) => {
   try {
@@ -224,6 +234,65 @@ router.get('/me', authMiddleware, async (req, res) => {
     res.status(500).json({
       error: 'Error interno del servidor',
       message: 'Error al obtener información del usuario'
+    });
+  }
+});
+
+// GET /api/auth/verify-token - Verificar validez del token
+router.get('/verify-token', async (req, res) => {
+  try {
+    const token = req.header('Authorization')?.replace('Bearer ', '');
+    
+    if (!token) {
+      return res.status(401).json({
+        success: false,
+        error: 'Token requerido',
+        message: 'No se proporcionó token de autenticación'
+      });
+    }
+
+    const tokenResult = verifyToken(token);
+    
+    if (!tokenResult.valid) {
+      return res.status(401).json({
+        success: false,
+        error: 'Token inválido',
+        message: 'El token de autenticación no es válido o ha expirado'
+      });
+    }
+
+    // Verificar que el usuario existe y está activo
+    let user;
+    if (global.USE_MEMORY_DB) {
+      user = await memoryDB.findUserById(tokenResult.decoded.userId);
+    } else {
+      user = await User.findById(tokenResult.decoded.userId).select('-password');
+    }
+
+    if (!user || !user.isActive) {
+      return res.status(401).json({
+        success: false,
+        error: 'Usuario no válido',
+        message: 'El usuario no existe o ha sido desactivado'
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Token válido',
+      user: user,
+      tokenInfo: {
+        issued: new Date(tokenResult.decoded.iat * 1000),
+        expires: new Date(tokenResult.decoded.exp * 1000)
+      }
+    });
+
+  } catch (error) {
+    console.error('Error verificando token:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Error interno del servidor',
+      message: 'Error al verificar token'
     });
   }
 });

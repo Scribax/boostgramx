@@ -29,6 +29,28 @@ api.interceptors.request.use(
   }
 );
 
+// Variable global para manejar estado de sesión expirada
+let isSessionExpired = false;
+let sessionExpiredEventListeners = [];
+
+// Función para notificar sobre sesión expirada
+const notifySessionExpired = () => {
+  if (isSessionExpired) return; // Evitar múltiples notificaciones
+  
+  isSessionExpired = true;
+  sessionExpiredEventListeners.forEach(listener => listener());
+};
+
+// Función para registrar listeners de sesión expirada
+const addSessionExpiredListener = (listener) => {
+  sessionExpiredEventListeners.push(listener);
+};
+
+// Función para limpiar estado de sesión expirada
+const clearSessionExpiredState = () => {
+  isSessionExpired = false;
+};
+
 // Interceptor para manejar respuestas y errores
 api.interceptors.response.use(
   (response) => {
@@ -37,23 +59,21 @@ api.interceptors.response.use(
   (error) => {
     const message = error.response?.data?.message || error.message || 'Error desconocido';
     
-    // Si el token ha expirado, limpiar cookies y mostrar modal de sesión expirada
+    // Si el token ha expirado, manejar de forma elegante
     if (error.response?.status === 401) {
       Cookies.remove('token');
       Cookies.remove('user');
       
-      // Mostrar modal de sesión expirada en lugar de redirigir inmediatamente
+      // Notificar a todos los componentes sobre sesión expirada
       const currentPath = window.location.pathname;
-      if (currentPath !== '/' && currentPath !== '/auth') {
-        // Mostrar modal personalizado de sesión expirada
-        if (window.confirm('Tu sesión ha expirado. Te redirigiremos al login para que puedas continuar.')) {
-          window.location.href = '/auth';
-        } else {
-          window.location.href = '/';
-        }
+      if (currentPath !== '/' && currentPath !== '/auth' && !isSessionExpired) {
+        notifySessionExpired();
       }
       
-      toast.error('Sesión expirada. Por favor, inicia sesión nuevamente.');
+      // Solo mostrar toast si no es una verificación silenciosa
+      if (!error.config?.silent) {
+        toast.error('Sesión expirada. Por favor, inicia sesión nuevamente.');
+      }
     } else if (error.response?.status >= 500) {
       toast.error('Error del servidor. Por favor, intenta más tarde.');
     } else if (error.response?.status === 403) {
@@ -63,6 +83,9 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+// Exportar funciones para manejo de sesión
+export { addSessionExpiredListener, clearSessionExpiredState };
 
 // Servicios de autenticación
 export const authService = {
@@ -159,6 +182,20 @@ export const authService = {
     try {
       const response = await api.get('/auth/me');
       return { success: true, user: response.data.user };
+    } catch (error) {
+      return { success: false, error: 'Token inválido' };
+    }
+  },
+
+  // Verificar token de forma silenciosa (sin mostrar errores)
+  verifyTokenSilently: async () => {
+    try {
+      const response = await api.get('/auth/verify-token', { silent: true });
+      return { 
+        success: true, 
+        user: response.data.user,
+        tokenInfo: response.data.tokenInfo 
+      };
     } catch (error) {
       return { success: false, error: 'Token inválido' };
     }

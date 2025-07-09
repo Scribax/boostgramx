@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { authService } from '../services/api';
+import { authService, addSessionExpiredListener, clearSessionExpiredState } from '../services/api';
+import { useNavigate } from 'react-router-dom';
+import SessionExpiredModal from '../components/SessionExpiredModal';
 
 const AuthContext = createContext();
 
@@ -15,6 +17,8 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [showSessionExpiredModal, setShowSessionExpiredModal] = useState(false);
+  const navigate = useNavigate();
 
   // Verificar autenticación al cargar la aplicación
   useEffect(() => {
@@ -42,6 +46,16 @@ export const AuthProvider = ({ children }) => {
     };
 
     checkAuth();
+
+    // Listener para manejar sesiones expiradas
+    const handleSessionExpired = () => {
+      console.log('Sesión expirada detectada en AuthProvider');
+      setUser(null);
+      setIsAuthenticated(false);
+      setShowSessionExpiredModal(true);
+    };
+
+    addSessionExpiredListener(handleSessionExpired);
   }, []);
 
   // Función de login
@@ -91,6 +105,20 @@ export const AuthProvider = ({ children }) => {
     authService.logout();
     setUser(null);
     setIsAuthenticated(false);
+    clearSessionExpiredState();
+  };
+
+  // Manejar modal de sesión expirada
+  const handleContinueLogin = () => {
+    setShowSessionExpiredModal(false);
+    clearSessionExpiredState();
+    navigate('/auth');
+  };
+
+  const handleGoHome = () => {
+    setShowSessionExpiredModal(false);
+    clearSessionExpiredState();
+    navigate('/');
   };
 
   // Actualizar información del usuario
@@ -121,9 +149,16 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
+    <>
+      <AuthContext.Provider value={value}>
+        {children}
+      </AuthContext.Provider>
+      <SessionExpiredModal 
+        show={showSessionExpiredModal} 
+        onContinueLogin={handleContinueLogin} 
+        onGoHome={handleGoHome} 
+      />
+    </>
   );
 };
 

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { ordersService } from '../services/api';
+import { ordersService, authService } from '../services/api';
 import { motion } from 'framer-motion';
 import { FaShoppingBag, FaClock, FaCheckCircle, FaDollarSign, FaUser, FaCog, FaSignOutAlt } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
@@ -15,21 +15,49 @@ const Dashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [recentOrders, setRecentOrders] = useState([]);
   const [showServiceModal, setShowServiceModal] = useState(false);
+  const [lastTokenCheck, setLastTokenCheck] = useState(Date.now());
+  const [isTokenValid, setIsTokenValid] = useState(true);
 
   useEffect(() => {
     fetchDashboardData();
     
     // Actualizar datos cada 30 segundos para estado en tiempo real
     const interval = setInterval(() => {
-      fetchDashboardData();
+      // Solo actualizar si el token es válido y el usuario está autenticado
+      if (isTokenValid && user) {
+        fetchDashboardData();
+      }
     }, 30000);
     
     return () => clearInterval(interval);
-  }, []);
+  }, [isTokenValid, user]);
 
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
+      
+      // Verificar token si han pasado más de 5 minutos desde la última verificación
+      const now = Date.now();
+      const fiveMinutes = 5 * 60 * 1000;
+      
+      if (now - lastTokenCheck > fiveMinutes) {
+        console.log('Verificando token silenciosamente...');
+        const tokenResult = await authService.verifyTokenSilently();
+        setIsTokenValid(tokenResult.success);
+        setLastTokenCheck(now);
+        
+        if (!tokenResult.success) {
+          console.log('Token inválido, deteniendo actualización de datos');
+          setLoading(false);
+          return;
+        }
+      }
+      
+      // Solo continuar si el token es válido
+      if (!isTokenValid) {
+        setLoading(false);
+        return;
+      }
       
       // Obtener estadísticas del usuario
       const statsResult = await ordersService.getOrderStats();
@@ -44,6 +72,10 @@ const Dashboard = () => {
       }
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
+      // Si hay error 401, no intentar más requests
+      if (error.response?.status === 401) {
+        setIsTokenValid(false);
+      }
     } finally {
       setLoading(false);
     }
