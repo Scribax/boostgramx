@@ -1,0 +1,273 @@
+/* Dashboard CSS Styles */
+.dashboard {
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.welcome-section h1 {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.user-avatar {
+    width: 50px;
+    height: 50px;
+    background-color: #4b5563;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+}
+
+.user-details {
+    display: flex;
+    flex-direction: column;
+}
+
+.user-name {
+    font-weight: 600;
+    color: #1f2937;
+    font-size: 1rem;
+}
+
+.user-email {
+    color: #6b7280;
+    font-size: 0.9rem;
+}
+
+.logout-button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background-color: #ef4444;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(239, 68, 68, 0.2);
+}
+
+.logout-button:hover {
+    background-color: #dc2626;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(239, 68, 68, 0.3);
+}
+
+.logout-button:active {
+    transform: translateY(0);
+}
+
+.dashboard-nav {
+    display: flex;
+    border-bottom: 1px solid #ddd;
+    margin-bottom: 20px;
+}
+
+.nav-tab {
+    padding: 10px 20px;
+    cursor: pointer;
+    font-size: 1rem;
+    color: #4b5563;
+    border: none;
+    background: none;
+    outline: none;
+    transition: color 0.3s ease;
+}
+
+.nav-tab.active {
+    font-weight: bold;
+    color: #1f2937;
+    border-bottom: 2px solid #3b82f6;
+}
+
+.dashboard-content {
+    padding: 20px 0;
+}
+
+/* Stats Grid */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 15px;
+}
+
+.stat-card {
+    background: #f9fafb;
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    display: flex;
+    align-items: center;
+}
+
+.stat-icon {
+    margin-right: 15px;
+    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    color: white;
+}
+
+.stat-icon.total {
+    background: #2563eb;
+}
+
+.stat-icon.pending {
+    background: #f97316;
+}
+
+.stat-icon.completed {
+    background: #10b981;
+}
+
+.stat-icon.money {
+    background: #1d4ed8;
+}
+
+.stat-info {
+    flex: 1;
+}
+
+.stat-info h3 {
+    margin: 0;
+    font-size: 1.5rem;
+}
+
+.stat-info p {
+    margin: 0;
+    color: #6b7280;
+}
+
+/* Orders List */
+.orders-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.order-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #ffffff;
+    padding: 10px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.order-info h4 {
+    margin: 0;
+    font-size: 1.1rem;
+}
+
+.order-info p {
+    color: #6b7280;
+}
+
+.order-date {
+    margin-top: 5px;
+    font-size: 0.9rem;
+    color: #9ca3af;
+}
+
+.order-status {
+    display: flex;
+    align-items: center;
+}
+
+.status-badge {
+    padding: 5px 10px;
+    border-radius: 9999px;
+    color: #fff;
+    font-size: 0.9rem;
+    margin-right: 10px;
+}
+
+.order-amount {
+    font-weight: bold;
+    color: #1f2937;
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    color: #6b7280;
+}
+
+.cta-button {
+    margin-top: 15px;
+    padding: 10px 20px;
+    background-color: #2563eb;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: background-color 0.3s ease;
+}
+
+.cta-button:hover {
+    background-color: #1d4ed8;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .dashboard-header {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+    }
+    
+    .user-info {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .logout-button {
+        font-size: 0.8rem;
+        padding: 6px 12px;
+    }
+    
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .logout-button span {
+        display: none; /* Ocultar texto en móviles muy pequeños */
+    }
+    
+    .logout-button {
+        padding: 8px;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        justify-content: center;
+    }
+}
